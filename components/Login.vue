@@ -45,14 +45,16 @@ const login = async () => {
     errors.value = null
 
     try {
-        await $userStore.getTokens()
-        await $userStore.login(email.value, password.value)
+        await $userStore.login({
+            email: email.value,
+            password: password.value,
+        })
         await $userStore.getUser()
         await $generalStore.getRandomUsers('suggested')
         await $generalStore.getRandomUsers('following')
         $generalStore.isLoginOpen = false
     } catch (error) {
-        errors.value = error.response.data.errors
+        errors.value = error.message
     }
 }
 </script>

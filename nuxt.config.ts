@@ -4,7 +4,8 @@ export default defineNuxtConfig({
   modules: [
     'nuxt-icon', 
     '@pinia/nuxt', 
-    '@pinia-plugin-persistedstate/nuxt'
+    '@pinia-plugin-persistedstate/nuxt',
+    '@nuxtjs/cloudinary'
   ],
   css: ['~/assets/css/main.css'],
   postcss: {
@@ -12,5 +13,8 @@ export default defineNuxtConfig({
       tailwindcss: {},
       autoprefixer: {},
     },
+  },
+  cloudinary: {
+    cloudName: 'YOUR_CLOUD_NAME'
   }
 });
