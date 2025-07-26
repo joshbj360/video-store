@@ -49,6 +49,7 @@ model Profile {
   following      Follow[]         @relation("Following")
   followers      Follow[]         @relation("Followers")
   chats          Chat[]           @relation("ChatParticipants")
+  sentMessages   Message[]
 }
 
 model SellerProfile {

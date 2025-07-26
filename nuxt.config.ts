@@ -5,9 +5,12 @@ export default defineNuxtConfig({
     'nuxt-icon', 
     '@pinia/nuxt', 
     '@pinia-plugin-persistedstate/nuxt',
-    '@nuxtjs/cloudinary'
+    '@nuxtjs/cloudinary',
+    '@nuxtjs/supabase',
   ],
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+  ],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -15,6 +18,9 @@ export default defineNuxtConfig({
     },
   },
   cloudinary: {
-    cloudName: 'YOUR_CLOUD_NAME'
+    cloudName: 'dcci05bzj'
+  },
+  supabase: {
+
   }
 });

@@ -5,14 +5,22 @@ import type { Profile, Product, Like, Review } from '~/types'
 export const useUserStore = defineStore('user', {
   state: () => ({
     id: '',
-    name: '',
-    bio: '',
-    image: ''
-  } as Profile),
+    email: '',
+    role: '',
+    avatar: '',
+    username: '',
+    // Add other properties required by Profile here, with default values
+    // For example:
+    // createdAt: '',
+    // updatedAt: '',
+    // followers: [],
+    // following: [],
+    // etc.
+  }),
   actions: {
-    async login({ email, password }) {
-      const { $supabase } = useNuxtApp()
-      const { data, error } = await $supabase.auth.signInWithPassword({
+    async login({ email, password }: { email: string; password: string }) {
+      const supabase = useSupabaseClient()
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -20,9 +28,9 @@ export const useUserStore = defineStore('user', {
       return data
     },
 
-    async register({ email, password, ...metadata }) {
-        const { $supabase } = useNuxtApp()
-      const { data, error } = await $supabase.auth.signUp({
+    async register({ email, password, ...metadata }: { email: string; password: string; [key: string]: any }) {
+      const supabase = useSupabaseClient()
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -36,19 +44,17 @@ export const useUserStore = defineStore('user', {
     },
 
     async getUser() {
-      const { $supabase } = useNuxtApp()
-      const { data: { user } } = await $supabase.auth.getUser()
+      const supabase = useSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         this.$state.id = user.id
-        this.$state.name = user.user_metadata.name
-        this.$state.bio = user.user_metadata.bio
-        this.$state.image = user.user_metadata.image
+        this.$state.username = user.user_metadata.username || ''
       }
     },
 
     async updateUserImage(data: { image: string }) {
-      const { $supabase } = useNuxtApp()
-      const { data: authData, error: authError } = await $supabase.auth.updateUser({
+      const supabase = useSupabaseClient()
+      const { data: authData, error: authError } = await supabase.auth.updateUser({
         data: { image: data.image }
       })
       if(authError) throw authError;
@@ -56,8 +62,8 @@ export const useUserStore = defineStore('user', {
     },
 
     async updateUser(name: string, bio: string) {
-      const { $supabase } = useNuxtApp()
-      const { data: authData, error: authError } = await $supabase.auth.updateUser({
+      const supabase = useSupabaseClient()
+      const { data: authData, error: authError } = await supabase.auth.updateUser({
         data: { name, bio }
       })
        if(authError) throw authError;
@@ -98,7 +104,11 @@ export const useUserStore = defineStore('user', {
 
     async updateComments(post: Product) {
         const { data } = await useFetch<Product>(`/api/posts/${post.id}`)
-        useGeneralStore().selectedPost.comments = data.value.comments
+        const generalStore = useGeneralStore()
+        if (generalStore.selectedProduct) {
+            // Assign reviews directly from the product if available
+            generalStore.selectedProduct.reviews = data.value?.reviews || []
+        }
     },
 
     async likePost(post: Product) {
@@ -110,23 +120,25 @@ export const useUserStore = defineStore('user', {
             }
         })
 
-        let singlePost = useGeneralStore().posts.find(p => p.id === post.id)
-        singlePost.likes.push(likeData.value)
+        let singleProduct = useGeneralStore().products?.find(p => p.id === post.id)
+        if (likeData.value) {
+            singleProduct?.likes.push(likeData.value)
+        }
     },
 
-    async unlikePost(post: Product) {
-        let likeId = null
-        post.likes.forEach(like => {
+    async unlikeProduct(product: Product) {
+        let likeId: string | null = null
+        product.likes.forEach(like => {
             if (like.userId === this.id) {
-                likeId = like.id
+                likeId = String(like.id)
             }
         })
         await useFetch(`/api/likes/${likeId}`, { method: 'DELETE' })
 
-        let singlePost = useGeneralStore().posts.find(p => p.id === post.id)
-        let index = singlePost.likes.findIndex(like => like.id === likeId)
-        if (index > -1) {
-            singlePost.likes.splice(index, 1)
+        let singleProduct = useGeneralStore().products?.find(p => p.id === product.id)
+        let index = singleProduct?.likes.findIndex(like => String(like.id) === likeId)
+        if (index && index > -1) {
+            singleProduct?.likes.splice(index, 1)
         }
     },
 
@@ -149,18 +161,16 @@ export const useUserStore = defineStore('user', {
     },
 
     async logout() {
-      const { $supabase } = useNuxtApp()
-      const { error } = await $supabase.auth.signOut()
+      const supabase = useSupabaseClient()
+      const { error } = await supabase.auth.signOut()
       if (error) throw error
       this.resetUser()
     },
 
     resetUser() {
       this.$state.id = ''
-      this.$state.name = ''
+      this.$state.username = ''
       this.$state.email = ''
-      this.$state.bio = ''
-      this.$state.image = ''
     }
 
   },

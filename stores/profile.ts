@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '../plugins/axios'
 
-const $axios = axios().provide.axios
 
 export const useProfileStore = defineStore('profile', {
   state: () => ({
@@ -16,14 +14,20 @@ export const useProfileStore = defineStore('profile', {
   actions: {
     async getProfile(id) {
       this.resetUser()
-      let res = await $axios.get(`/api/profiles/${id}`)
-      
-      this.$state.id = res.data.user[0].id
-      this.$state.name = res.data.user[0].name
-      this.$state.bio = res.data.user[0].bio
-      this.$state.image = res.data.user[0].image
+      let {data} = await useFetch(`/api/profiles/${id}`)
 
-      this.$state.posts = res.data.posts
+      const profileData = data.value as {
+        id: string,
+        user: Array<{ name: string, bio: string, image: string }>,
+        posts: any[]
+      }
+
+      this.$state.id = profileData.id
+      this.$state.name = profileData.user[0].name
+      this.$state.bio = profileData.user[0].bio
+      this.$state.image = profileData.user[0].image
+
+      this.$state.posts = profileData.posts
 
       this.allLikesCount()
     },

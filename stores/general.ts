@@ -6,10 +6,10 @@ export const useGeneralStore = defineStore('general', {
   state: () => ({
     isLoginOpen: false,
     isEditProfileOpen: false,
-    selectedPost: null as Product | null,
+    selectedProduct: null as Product | null,
     ids: null,
     isBackUrl: "/",
-    posts: null as Product[] | null,
+    products: null as Product[] | null,
     suggested: null as Profile[] | null,
     following: null as Profile[] | null,
   }),
@@ -30,14 +30,14 @@ export const useGeneralStore = defineStore('general', {
         this.isBackUrl = url
     },
 
-    async getPostById(id: string) {
+    async getProductById(id: string) {
         const { data } = await useFetch<Product>(`/api/posts/${id}`)
-        this.$state.selectedPost = data.value
+        this.$state.selectedProduct = data.value
     },
 
     async getRandomUsers(type: string) {
-        const { $supabase } = useNuxtApp()
-        const { data, error } = await $supabase.from('profiles').select().limit(5)
+        const supabase = useSupabaseClient()
+        const { data, error } = await supabase.from('profiles').select().limit(5)
         if (error) throw error
         if (type === 'suggested') {
             this.suggested = data as Profile[]
@@ -53,14 +53,14 @@ export const useGeneralStore = defineStore('general', {
       for (let i = 0; i < array.length; i++) {
         const res = array[i];
         if (res.id == user.id) {
-            res.image = user.image
+            res.avatar = user.avatar
         }
       }
     },
 
-    async getAllUsersAndPosts() {
+    async getAllUsersAndProducts() {
         const { data } = await useFetch<Product[]>('/api/posts')
-        this.posts = data.value
+        this.products = data.value
     }
   },
   persist: true,

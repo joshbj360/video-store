@@ -33,9 +33,9 @@ export const useChatStore = defineStore('chat', {
             }
         },
         subscribeToMessages() {
-            const { $supabase } = useNuxtApp()
+            const supabase = useSupabaseClient()
             if (this.activeChat) {
-                $supabase
+                supabase
                     .channel(`chat:${this.activeChat.id}`)
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'Message' }, (payload) => {
                         this.messages.push(payload.new as Message)
